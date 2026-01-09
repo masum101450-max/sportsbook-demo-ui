@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Sportsbook Demo UI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+:root{
+  --bg:#020617;
+  --panel:#111827;
+  --border:#1f2937;
+  --accent:#22c55e;
+  --danger:#ef4444;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+}
+
+*{box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}
+body{margin:0;background:var(--bg);color:var(--text)}
+
+header{
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+header h1{font-size:18px;margin:0;color:var(--accent)}
+header span{font-size:12px;color:var(--muted)}
+
+.app{display:flex;min-height:calc(100vh - 50px)}
+
+/* SIDEBAR */
+.sidebar{
+  width:200px;
+  background:var(--panel);
+  border-right:1px solid var(--border);
+  padding:12px;
+}
+.sidebar h3{font-size:14px;color:var(--muted)}
+.sidebar div{padding:8px;border-radius:6px}
+.sidebar div:hover{background:#020617}
+
+/* MAIN */
+.main{flex:1;padding:16px}
+.wallet{
+  background:var(--panel);
+  padding:12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  margin-bottom:16px;
+  display:flex;
+  justify-content:space-between;
+}
+.wallet strong{color:var(--accent)}
+
+.matches{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:14px;
+}
+.card{
+  background:var(--panel);
+  padding:14px;
+  border-radius:12px;
+  border:1px solid var(--border);
+}
+.card h4{margin:0;font-size:14px;color:var(--muted)}
+.card p{margin:6px 0;font-size:15px}
+.odds{
+  display:flex;
+  gap:8px;
+}
+.odds button{
+  flex:1;
+  background:#020617;
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:8px;
+  border-radius:6px;
+}
+.odds button:hover{border-color:var(--accent)}
+
+/* BET SLIP */
+.betslip{
+  width:240px;
+  background:var(--panel);
+  border-left:1px solid var(--border);
+  padding:12px;
+}
+.betslip h3{font-size:14px;color:var(--muted)}
+.betslip p{font-size:13px}
+input{
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+  background:#020617;
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+}
+button.place{
+  width:100%;
+  margin-top:10px;
+  padding:10px;
+  background:var(--accent);
+  border:none;
+  font-weight:700;
+  border-radius:8px;
+  color:#022c22;
+}
+
+footer{
+  padding:10px;
+  font-size:11px;
+  text-align:center;
+  color:var(--muted);
+  border-top:1px solid var(--border);
+}
+
+@media(max-width:900px){
+  .sidebar,.betslip{display:none}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Sportsbook Demo</h1>
+  <span>Demo only • No real money</span>
+</header>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h3>Sports</h3>
+    <div>Football</div>
+    <div>Cricket</div>
+    <div>Basketball</div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="wallet">
+      <span>Demo Balance</span>
+      <strong id="balance">0</strong>
+    </div>
+
+    <div class="matches" id="matches"></div>
+  </div>
+
+  <!-- BET SLIP -->
+  <div class="betslip">
+    <h3>Bet Slip (Demo)</h3>
+    <p id="slipText">No bet selected</p>
+    <input type="number" id="stake" placeholder="Demo coins" />
+    <button class="place" onclick="placeBet()">Place Demo Bet</button>
+    <p id="result"></p>
+  </div>
+
+</div>
+
+<footer>
+This is a demo sportsbook UI for educational purposes only.  
+No gambling • No payments • Virtual coins only.
+</footer>
+
+<script>
+let balance = localStorage.getItem("demoBal")
+? parseInt(localStorage.getItem("demoBal")) : 10000;
+document.getElementById("balance").innerText = balance;
+
+let currentOdds = null;
+
+const matches = [
+  "Team A vs Team B",
+  "Team X vs Team Y",
+  "Team C vs Team D"
+];
+
+const container = document.getElementById("matches");
+
+matches.forEach(m=>{
+  const odds = (Math.random()*2+1).toFixed(2);
+  container.innerHTML += `
+    <div class="card">
+      <h4>Football</h4>
+      <p>${m}</p>
+      <div class="odds">
+        <button onclick="selectOdds(${odds},'${m}')">${odds}</button>
+      </div>
+    </div>
+  `;
+});
+
+function selectOdds(o,m){
+  currentOdds=o;
+  document.getElementById("slipText").innerText =
+    `${m} @ ${o}`;
+}
+
+function placeBet(){
+  const stake = parseInt(document.getElementById("stake").value);
+  const res = document.getElementById("result");
+
+  if(!currentOdds){res.innerText="Select a bet";return;}
+  if(!stake||stake<=0){res.innerText="Invalid amount";return;}
+  if(stake>balance){res.innerText="Not enough balance";return;}
+
+  if(Math.random()<0.5){
+    const win = Math.floor(stake*currentOdds);
+    balance+=win;
+    res.innerText=`You WON ${win}`;
+  }else{
+    balance-=stake;
+    res.innerText=`You LOST ${stake}`;
+  }
+
+  localStorage.setItem("demoBal",balance);
+  document.getElementById("balance").innerText=balance;
+}
+</script>
+
+</body>
+</html>
